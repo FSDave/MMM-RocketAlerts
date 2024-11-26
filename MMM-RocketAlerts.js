@@ -30,6 +30,7 @@ Module.register("MMM-RocketAlerts", {
             alertDesc.className = "alert-desc";
             alertDesc.innerHTML = this.currentAlert.desc;
             wrapper.appendChild(alertDesc);
+            this.currentAlert = null;
         }
 
         // Display the history
