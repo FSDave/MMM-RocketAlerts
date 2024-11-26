@@ -1,3 +1,5 @@
+const Log = require("logger");
+
 Module.register("MMM-RocketAlerts", {
     defaults: {
         alertUrl: "https://www.oref.org.il/WarningMessages/alert/alerts.json",
@@ -28,6 +30,7 @@ Module.register("MMM-RocketAlerts", {
         fetch(this.config.historyUrl)
             .then((response) => response.json())
             .then((data) => {
+                Log.log(`handle history data: ${JSON.stringify(data)}`)
                 this.alertHistory = data.slice(0, 5);
                 this.updateDom();
             })
@@ -35,6 +38,7 @@ Module.register("MMM-RocketAlerts", {
     },
 
     handleAlert(data) {
+        Log.log(`handle alert data: ${JSON.stringify(data)}`)
         if (Object.keys(data).length > 0 && !this.isFlashing) {
             // Flash screen red for 5 seconds
             this.isFlashing = true;
