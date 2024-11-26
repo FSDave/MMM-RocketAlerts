@@ -1,59 +1,17 @@
-const Log = require("logger");
-
 Module.register("MMM-RocketAlerts", {
     defaults: {
-        alertUrl: "https://www.oref.org.il/WarningMessages/alert/alerts.json",
-        historyUrl: "https://www.oref.org.il/WarningMessages/alert/History/AlertsHistory.json",
-        updateInterval: 1000, // Fetch new data every 1 second
+        updateInterval: 1000, // Fetch new data every second
     },
 
     start() {
         this.currentAlert = null;
         this.alertHistory = [];
         this.isFlashing = false;
-        this.getData();
-        setInterval(() => this.getData(), this.config.updateInterval);
+        this.sendSocketNotification("INIT", this.config);
     },
 
     getStyles() {
         return ["MMM-RocketAlerts.css"];
-    },
-
-    getData() {
-        // Fetch current alert
-        fetch(this.config.alertUrl)
-            .then((response) => response.json())
-            .then((data) => this.handleAlert(data))
-            .catch((error) => console.error("Error fetching alert data:", error));
-
-        // Fetch alert history
-        fetch(this.config.historyUrl)
-            .then((response) => response.json())
-            .then((data) => {
-                Log.log(`handle history data: ${JSON.stringify(data)}`)
-                this.alertHistory = data.slice(0, 5);
-                this.updateDom();
-            })
-            .catch((error) => console.error("Error fetching history data:", error));
-    },
-
-    handleAlert(data) {
-        Log.log(`handle alert data: ${JSON.stringify(data)}`)
-        if (Object.keys(data).length > 0 && !this.isFlashing) {
-            // Flash screen red for 5 seconds
-            this.isFlashing = true;
-            this.currentAlert = data;
-            this.updateDom();
-
-            document.body.classList.add("flash-red");
-            setTimeout(() => {
-                document.body.classList.remove("flash-red");
-                this.isFlashing = false;
-            }, 5000);
-        } else if (Object.keys(data).length === 0) {
-            this.currentAlert = null;
-            this.updateDom();
-        }
     },
 
     getDom() {
@@ -92,5 +50,32 @@ Module.register("MMM-RocketAlerts", {
         }
 
         return wrapper;
+    },
+
+    socketNotificationReceived(notification, payload) {
+        if (notification === "CURRENT_ALERT") {
+            this.handleAlert(payload);
+        } else if (notification === "ALERT_HISTORY") {
+            this.alertHistory = payload;
+            this.updateDom();
+        }
+    },
+
+    handleAlert(data) {
+        if (Object.keys(data).length > 0 && !this.isFlashing) {
+            // Flash screen red for 5 seconds
+            this.isFlashing = true;
+            this.currentAlert = data;
+            this.updateDom();
+
+            document.body.classList.add("flash-red");
+            setTimeout(() => {
+                document.body.classList.remove("flash-red");
+                this.isFlashing = false;
+            }, 5000);
+        } else if (Object.keys(data).length === 0) {
+            this.currentAlert = null;
+            this.updateDom();
+        }
     },
 });
