@@ -13,7 +13,7 @@ This is a module for [MagicMirror²](https://magicmirror.builders/) that display
 
 2. Clone this repository
     ```bash
-    git clone https://github.com/YourUsername/MMM-RocketAlerts.git
+    git clone https://github.com/FSDave/MMM-RocketAlerts.git
     ```
 
 3. Navigate to the module directory:
