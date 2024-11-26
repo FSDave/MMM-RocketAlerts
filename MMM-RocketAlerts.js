@@ -1,81 +1,78 @@
 Module.register("MMM-RocketAlerts", {
     defaults: {
-        updateInterval: 1000, // Fetch new data every second
+        alertUrl: "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+        historyUrl: "https://www.oref.org.il/warningMessages/alert/History/AlertsHistory.json",
+        updateInterval: 1000, // 1 second
     },
 
-    start() {
+    start: function () {
+        this.lastAlerts = [];
         this.currentAlert = null;
-        this.alertHistory = [];
-        this.isFlashing = false;
-        this.sendSocketNotification("INIT", this.config);
+        this.sendSocketNotification("START_FETCH", this.config);
+        this.updateDom();
     },
 
-    getStyles() {
+    getStyles: function () {
         return ["MMM-RocketAlerts.css"];
     },
 
-    getDom() {
+    getDom: function () {
         const wrapper = document.createElement("div");
 
-        // Display current alert if available
+        // Display the current alert
         if (this.currentAlert) {
-            const alertDiv = document.createElement("div");
-            alertDiv.className = "alert";
-            alertDiv.innerHTML = `
-                <h2>${this.currentAlert.title}</h2>
-                <p>${this.currentAlert.desc}</p>
-                <p>Location(s): ${this.currentAlert.data.join(", ")}</p>
-            `;
-            wrapper.appendChild(alertDiv);
+            const alertTitle = document.createElement("div");
+            alertTitle.className = "alert-title";
+            alertTitle.innerHTML = `<strong>${this.currentAlert.title}</strong>: ${this.currentAlert.data.join(", ")}`;
+            wrapper.appendChild(alertTitle);
+
+            const alertDesc = document.createElement("div");
+            alertDesc.className = "alert-desc";
+            alertDesc.innerHTML = this.currentAlert.desc;
+            wrapper.appendChild(alertDesc);
         }
 
-        // Display alert history
-        if (this.alertHistory.length > 0) {
-            const historyDiv = document.createElement("div");
-            historyDiv.className = "history";
+        // Display the history
+        if (this.lastAlerts.length > 0) {
+            const historyHeader = document.createElement("div");
+            historyHeader.className = "history-header";
+            historyHeader.innerHTML = "Last 5 Alerts:";
+            wrapper.appendChild(historyHeader);
 
-            const historyTitle = document.createElement("h3");
-            historyTitle.textContent = "Last 5 Alerts:";
-            historyDiv.appendChild(historyTitle);
-
-            this.alertHistory.forEach((alert) => {
-                const alertEntry = document.createElement("p");
-                alertEntry.innerHTML = `
-                    <strong>${alert.alertDate}</strong> - ${alert.title} (${alert.data})
-                `;
-                historyDiv.appendChild(alertEntry);
+            const historyList = document.createElement("ul");
+            historyList.className = "history-list";
+            this.lastAlerts.forEach(alert => {
+                const historyItem = document.createElement("li");
+                historyItem.innerHTML = `${alert.alertDate}: ${alert.title} - ${alert.data}`;
+                historyList.appendChild(historyItem);
             });
-
-            wrapper.appendChild(historyDiv);
+            wrapper.appendChild(historyList);
+        } else {
+            const noHistory = document.createElement("div");
+            noHistory.className = "no-history";
+            noHistory.innerHTML = "No recent alerts.";
+            wrapper.appendChild(noHistory);
         }
 
         return wrapper;
     },
 
-    socketNotificationReceived(notification, payload) {
-        if (notification === "CURRENT_ALERT") {
-            this.handleAlert(payload);
-        } else if (notification === "ALERT_HISTORY") {
-            this.alertHistory = payload;
+    socketNotificationReceived: function (notification, payload) {
+        if (notification === "ALERT_RECEIVED") {
+            this.currentAlert = payload;
+            this.flashScreenRed();
+            this.updateDom();
+        } else if (notification === "HISTORY_RECEIVED") {
+            this.lastAlerts = payload.slice(0, 5);
             this.updateDom();
         }
     },
 
-    handleAlert(data) {
-        if (Object.keys(data).length > 0 && !this.isFlashing) {
-            // Flash screen red for 5 seconds
-            this.isFlashing = true;
-            this.currentAlert = data;
-            this.updateDom();
-
-            document.body.classList.add("flash-red");
-            setTimeout(() => {
-                document.body.classList.remove("flash-red");
-                this.isFlashing = false;
-            }, 5000);
-        } else if (Object.keys(data).length === 0) {
-            this.currentAlert = null;
-            this.updateDom();
-        }
+    flashScreenRed: function () {
+        const body = document.querySelector("body");
+        body.classList.add("flash-red");
+        setTimeout(() => {
+            body.classList.remove("flash-red");
+        }, 5000);
     },
 });

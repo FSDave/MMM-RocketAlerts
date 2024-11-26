@@ -1,22 +1,35 @@
 .flash-red {
     background-color: red !important;
-    transition: background-color 0.5s ease;
 }
 
-.MMM-RocketAlerts .alert {
-    padding: 10px;
-    border: 2px solid red;
-    background-color: #ffe6e6;
-    margin-bottom: 15px;
-    border-radius: 5px;
-}
-
-.MMM-RocketAlerts .history {
-    padding: 10px;
-    background-color: #f4f4f4;
-    border-radius: 5px;
-}
-
-.MMM-RocketAlerts .history h3 {
+.alert-title {
+    font-size: 1.5em;
+    color: red;
     margin-bottom: 10px;
+}
+
+.alert-desc {
+    font-size: 1.2em;
+    color: black;
+    margin-bottom: 20px;
+}
+
+.history-header {
+    font-size: 1.3em;
+    margin-top: 20px;
+}
+
+.history-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.history-list li {
+    margin-bottom: 5px;
+}
+
+.no-history {
+    font-size: 1.2em;
+    color: gray;
+    margin-top: 20px;
 }
