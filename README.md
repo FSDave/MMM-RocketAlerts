@@ -13,17 +13,18 @@ This is a module for [MagicMirror²](https://magicmirror.builders/) that display
 
 2. Clone this repository
     ```bash
-        git clone https://github.com/YourUsername/MMM-RocketAlerts.git
+    git clone https://github.com/YourUsername/MMM-RocketAlerts.git
     ```
 
 3. Navigate to the module directory:
     ```bash
-        cd MMM-RocketAlerts
+    cd MMM-RocketAlerts
     ```
 4.Install the required dependencies:
     ```bash
-        npm install
+    npm install
     ```
+    
 ---
 ## Configuration
 Add the module to the modules array in your config.js file:
