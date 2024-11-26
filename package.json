@@ -1,0 +1,9 @@
+{
+    "name": "MMM-RocketAlerts",
+    "version": "1.0.0",
+    "description": "A Magic Mirror module for real-time rocket alerts in Israel.",
+    "main": "node_helper.js",
+    "dependencies": {
+        "axios": "^1.0.0"
+    }
+}

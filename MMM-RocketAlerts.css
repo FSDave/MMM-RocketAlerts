@@ -1,0 +1,11 @@
+.rocket-alerts {
+    font-size: 1.2em;
+    line-height: 1.5em;
+  }
+  
+  .rocket-alerts .alert {
+    margin-bottom: 10px;
+    color: #ff0000; /* Red for urgency */
+  }
+  
+  
