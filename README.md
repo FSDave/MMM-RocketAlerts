@@ -20,7 +20,8 @@ This is a module for [MagicMirror²](https://magicmirror.builders/) that display
     ```bash
     cd MMM-RocketAlerts
     ```
-4.Install the required dependencies:
+
+4. Install the required dependencies:
     ```bash
     npm install
     ```
