@@ -31,7 +31,6 @@ module.exports = NodeHelper.create({
             const historyData = historyResponse.data;
 
             if (Array.isArray(historyData)) {
-                logger.log(`Fetched alert history.: ${JSON.stringify(historyData)}`);
                 this.sendSocketNotification("HISTORY_RECEIVED", historyData);
             }
         } catch (error) {
