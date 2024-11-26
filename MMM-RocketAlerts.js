@@ -1,135 +1,92 @@
-const Log = require("logger");
 Module.register("MMM-RocketAlerts", {
     defaults: {
-      updateInterval: 1000, // 1 second for new alerts
-      historyInterval: 5000, // 5 seconds for history updates
-      newAlertsApiUrl: "https://www.oref.org.il/WarningMessages/alert/alerts.json", // API for new alerts
-      historyApiUrl: "https://www.oref.org.il/warningMessages/alert/History/AlertsHistory.json", // API for alert history
+        alertUrl: "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+        historyUrl: "https://www.oref.org.il/WarningMessages/alert/History/AlertsHistory.json",
+        updateInterval: 1000, // Fetch new data every 1 second
     },
-  
-    start: function () {
-      this.alerts = []; // Initialize empty alerts array
-      this.getNewAlerts(); // Start checking new alerts
-      this.getHistoryAlerts(); // Fetch history alerts
-      this.scheduleUpdates(); // Schedule periodic updates
+
+    start() {
+        this.currentAlert = null;
+        this.alertHistory = [];
+        this.isFlashing = false;
+        this.getData();
+        setInterval(() => this.getData(), this.config.updateInterval);
     },
-  
-    async fetchJson(url) {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+
+    getStyles() {
+        return ["MMM-RocketAlerts.css"];
+    },
+
+    getData() {
+        // Fetch current alert
+        fetch(this.config.alertUrl)
+            .then((response) => response.json())
+            .then((data) => this.handleAlert(data))
+            .catch((error) => console.error("Error fetching alert data:", error));
+
+        // Fetch alert history
+        fetch(this.config.historyUrl)
+            .then((response) => response.json())
+            .then((data) => {
+                this.alertHistory = data.slice(0, 5);
+                this.updateDom();
+            })
+            .catch((error) => console.error("Error fetching history data:", error));
+    },
+
+    handleAlert(data) {
+        if (Object.keys(data).length > 0 && !this.isFlashing) {
+            // Flash screen red for 5 seconds
+            this.isFlashing = true;
+            this.currentAlert = data;
+            this.updateDom();
+
+            document.body.classList.add("flash-red");
+            setTimeout(() => {
+                document.body.classList.remove("flash-red");
+                this.isFlashing = false;
+            }, 5000);
+        } else if (Object.keys(data).length === 0) {
+            this.currentAlert = null;
+            this.updateDom();
         }
-        return await response.json();
-      } catch (error) {
-        Log.error(`MMM-RocketAlerts: Error fetching data from ${url}`, error);
-        return null;
-      }
     },
-  
-    async getNewAlerts() {
-      const response = await this.fetchJson(this.config.newAlertsApiUrl);
-      if (response) {
-        this.processNewAlerts(response);
-      }
-    },
-  
-    async getHistoryAlerts() {
-      const response = await this.fetchJson(this.config.historyApiUrl);
-      if (response) {
-        this.processHistoryAlerts(response);
-      }
-    },
-  
-    processNewAlerts(response) {
-      // Ensure response structure matches the expected format
-      if (response && response.id) {
-        const isNewAlert = !this.alerts.find((existingAlert) => existingAlert.id === response.id);
-  
-        if (isNewAlert) {
-          this.alerts.push(response); // Add the new alert to the list
-          this.trimAlerts(); // Keep only the latest 5 alerts
-          this.updateDom(); // Update the DOM
-        }
-      }
-    },
-  
-    processHistoryAlerts(response) {
-      if (Array.isArray(response) && response.length > 0) {
-        response.forEach((alert) => {
-          const isNewAlert = !this.alerts.find((existingAlert) => existingAlert.id === alert.id);
-  
-          if (isNewAlert) {
-            this.alerts.push(alert); // Add historical alert to the list
-          }
-        });
-        this.trimAlerts(); // Keep only the latest 5 alerts
-        this.updateDom(); // Update the DOM with the latest alerts
-      } else {
-        Log.log(`response from rocket history: ${JSON.stringify(response)}`)
-      }
-    },
-  
-    trimAlerts() {
-      // Sort alerts by ID descending (assuming newer IDs are larger) and keep only the latest 5
-      this.alerts = this.alerts.sort((a, b) => b.id - a.id).slice(0, 5);
-    },
-  
-    scheduleUpdates() {
-      // Check new alerts every second
-      setInterval(() => {
-        this.getNewAlerts();
-      }, this.config.updateInterval);
-  
-      // Check history every 5 seconds
-      setInterval(() => {
-        this.getHistoryAlerts();
-      }, this.config.historyInterval);
-    },
-  
+
     getDom() {
-      const wrapper = document.createElement("div");
-      wrapper.className = "rocket-alerts";
-  
-      if (this.alerts.length === 0) {
-        wrapper.innerHTML = "No alerts.";
+        const wrapper = document.createElement("div");
+
+        // Display current alert if available
+        if (this.currentAlert) {
+            const alertDiv = document.createElement("div");
+            alertDiv.className = "alert";
+            alertDiv.innerHTML = `
+                <h2>${this.currentAlert.title}</h2>
+                <p>${this.currentAlert.desc}</p>
+                <p>Location(s): ${this.currentAlert.data.join(", ")}</p>
+            `;
+            wrapper.appendChild(alertDiv);
+        }
+
+        // Display alert history
+        if (this.alertHistory.length > 0) {
+            const historyDiv = document.createElement("div");
+            historyDiv.className = "history";
+
+            const historyTitle = document.createElement("h3");
+            historyTitle.textContent = "Last 5 Alerts:";
+            historyDiv.appendChild(historyTitle);
+
+            this.alertHistory.forEach((alert) => {
+                const alertEntry = document.createElement("p");
+                alertEntry.innerHTML = `
+                    <strong>${alert.alertDate}</strong> - ${alert.title} (${alert.data})
+                `;
+                historyDiv.appendChild(alertEntry);
+            });
+
+            wrapper.appendChild(historyDiv);
+        }
+
         return wrapper;
-      }
-  
-      const title = document.createElement("h2");
-      title.innerText = "Rocket Alerts";
-      wrapper.appendChild(title);
-  
-      // Alerts Section
-      const alertsSection = document.createElement("div");
-      alertsSection.className = "alerts-section";
-  
-      this.alerts.forEach((alert) => {
-        const alertDiv = document.createElement("div");
-        alertDiv.className = "alert";
-  
-        const id = document.createElement("div");
-        id.innerText = `ID: ${alert.id}`;
-        alertDiv.appendChild(id);
-  
-        const title = document.createElement("div");
-        title.innerText = `Title: ${alert.title}`;
-        alertDiv.appendChild(title);
-  
-        const data = document.createElement("div");
-        data.innerText = `Location: ${alert.data.join(", ")}`;
-        alertDiv.appendChild(data);
-  
-        const desc = document.createElement("div");
-        desc.innerText = `Description: ${alert.desc}`;
-        alertDiv.appendChild(desc);
-  
-        alertsSection.appendChild(alertDiv);
-      });
-  
-      wrapper.appendChild(alertsSection);
-  
-      return wrapper;
     },
-  });
-  
+});
