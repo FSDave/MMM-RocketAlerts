@@ -64,6 +64,8 @@ Module.register("MMM-RocketAlerts", {
         });
         this.trimAlerts(); // Keep only the latest 5 alerts
         this.updateDom(); // Update the DOM with the latest alerts
+      } else {
+        console.log(`response from rocket history: ${JSON.stringify(response)}`)
       }
     },
   
