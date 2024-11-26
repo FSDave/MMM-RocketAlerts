@@ -20,7 +20,7 @@ Module.register("MMM-RocketAlerts", {
         const wrapper = document.createElement("div");
 
         // Display the current alert
-        if (this.currentAlert) {
+        if (this.currentAlert && this.currentAlert!="\r\n") {
             const alertTitle = document.createElement("div");
             alertTitle.className = "alert-title";
             alertTitle.innerHTML = `<strong>${this.currentAlert.title}</strong>: ${this.currentAlert.data.join(", ")}`;
