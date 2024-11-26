@@ -20,7 +20,7 @@ Module.register("MMM-RocketAlerts", {
         const wrapper = document.createElement("div");
 
         // Display the current alert
-        if (this.currentAlert && typeof(this.currentAlert)=="object") {
+        if (this.currentAlert && typeof (this.currentAlert) == "object") {
             const alertTitle = document.createElement("div");
             alertTitle.className = "alert-title";
             alertTitle.innerHTML = `<strong>${this.currentAlert.title}</strong>: ${this.currentAlert.data.join(", ")}`;
@@ -60,9 +60,9 @@ Module.register("MMM-RocketAlerts", {
 
     socketNotificationReceived: function (notification, payload) {
         if (notification === "ALERT_RECEIVED") {
-            this.currentAlert = payload;
-            this.flashScreenRed();
-            this.updateDom();
+                this.currentAlert = payload;
+                this.flashScreenRed();
+                this.updateDom();
         } else if (notification === "HISTORY_RECEIVED") {
             this.lastAlerts = payload.slice(0, 5);
             this.updateDom();
