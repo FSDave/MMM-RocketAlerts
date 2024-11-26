@@ -13,60 +13,50 @@ Module.register("MMM-RocketAlerts", {
       this.scheduleUpdates(); // Schedule periodic updates
     },
   
-    getNewAlerts: function () {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", this.config.newAlertsApiUrl, true);
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-          try {
-            const response = JSON.parse(xhr.responseText);
-            this.processNewAlerts(response);
-          } catch (error) {
-            console.error("MMM-RocketAlerts: Error parsing new alerts response:", error);
-          }
+    async fetchJson(url) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      };
-      xhr.send();
-    },
-  
-    getHistoryAlerts: function () {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", this.config.historyApiUrl, true);
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-          try {
-            const response = JSON.parse(xhr.responseText);
-            this.processHistoryAlerts(response);
-          } catch (error) {
-            console.error("MMM-RocketAlerts: Error parsing history alerts response:", error);
-          }
-        }
-      };
-      xhr.send();
-    },
-  
-    processNewAlerts: function (response) {
-      if (response && response.length > 0) {
-        response.forEach((alert) => {
-          const isNewAlert = !this.alerts.find(
-            (existingAlert) => existingAlert.alertDate === alert.alertDate
-          );
-  
-          if (isNewAlert) {
-            this.alerts.push(alert); // Add the new alert to the list
-          }
-        });
-        this.trimAlerts(); // Keep only the latest 5 alerts
-        this.updateDom(); // Update the DOM
+        return await response.json();
+      } catch (error) {
+        console.error(`MMM-RocketAlerts: Error fetching data from ${url}`, error);
+        return null;
       }
     },
   
-    processHistoryAlerts: function (response) {
-      if (response && response.length > 0) {
+    async getNewAlerts() {
+      const response = await this.fetchJson(this.config.newAlertsApiUrl);
+      if (response) {
+        this.processNewAlerts(response);
+      }
+    },
+  
+    async getHistoryAlerts() {
+      const response = await this.fetchJson(this.config.historyApiUrl);
+      if (response) {
+        this.processHistoryAlerts(response);
+      }
+    },
+  
+    processNewAlerts(response) {
+      // Ensure response structure matches the expected format
+      if (response && response.id) {
+        const isNewAlert = !this.alerts.find((existingAlert) => existingAlert.id === response.id);
+  
+        if (isNewAlert) {
+          this.alerts.push(response); // Add the new alert to the list
+          this.trimAlerts(); // Keep only the latest 5 alerts
+          this.updateDom(); // Update the DOM
+        }
+      }
+    },
+  
+    processHistoryAlerts(response) {
+      if (Array.isArray(response) && response.length > 0) {
         response.forEach((alert) => {
-          const isNewAlert = !this.alerts.find(
-            (existingAlert) => existingAlert.alertDate === alert.alertDate
-          );
+          const isNewAlert = !this.alerts.find((existingAlert) => existingAlert.id === alert.id);
   
           if (isNewAlert) {
             this.alerts.push(alert); // Add historical alert to the list
@@ -77,14 +67,12 @@ Module.register("MMM-RocketAlerts", {
       }
     },
   
-    trimAlerts: function () {
-      // Sort alerts by date descending and keep only the latest 5
-      this.alerts = this.alerts
-        .sort((a, b) => new Date(b.alertDate) - new Date(a.alertDate))
-        .slice(0, 5);
+    trimAlerts() {
+      // Sort alerts by ID descending (assuming newer IDs are larger) and keep only the latest 5
+      this.alerts = this.alerts.sort((a, b) => b.id - a.id).slice(0, 5);
     },
   
-    scheduleUpdates: function () {
+    scheduleUpdates() {
       // Check new alerts every second
       setInterval(() => {
         this.getNewAlerts();
@@ -96,7 +84,7 @@ Module.register("MMM-RocketAlerts", {
       }, this.config.historyInterval);
     },
   
-    getDom: function () {
+    getDom() {
       const wrapper = document.createElement("div");
       wrapper.className = "rocket-alerts";
   
@@ -117,17 +105,21 @@ Module.register("MMM-RocketAlerts", {
         const alertDiv = document.createElement("div");
         alertDiv.className = "alert";
   
-        const date = document.createElement("div");
-        date.innerText = `Date: ${alert.alertDate}`;
-        alertDiv.appendChild(date);
+        const id = document.createElement("div");
+        id.innerText = `ID: ${alert.id}`;
+        alertDiv.appendChild(id);
   
         const title = document.createElement("div");
         title.innerText = `Title: ${alert.title}`;
         alertDiv.appendChild(title);
   
         const data = document.createElement("div");
-        data.innerText = `Location: ${alert.data}`;
+        data.innerText = `Location: ${alert.data.join(", ")}`;
         alertDiv.appendChild(data);
+  
+        const desc = document.createElement("div");
+        desc.innerText = `Description: ${alert.desc}`;
+        alertDiv.appendChild(desc);
   
         alertsSection.appendChild(alertDiv);
       });
