@@ -8,7 +8,6 @@ Module.register("MMM-RocketAlerts", {
   
     start: function () {
       this.alerts = []; // Initialize empty alerts array
-      this.historyAlerts = []; // Initialize empty history alerts array
       this.getNewAlerts(); // Start checking new alerts
       this.getHistoryAlerts(); // Fetch history alerts
       this.scheduleUpdates(); // Schedule periodic updates
@@ -48,24 +47,41 @@ Module.register("MMM-RocketAlerts", {
   
     processNewAlerts: function (response) {
       if (response && response.length > 0) {
-        // Assuming response contains an array of alerts
-        const latestAlert = response[0];
-        const isNewAlert = !this.alerts.find((alert) => alert.alertDate === latestAlert.alertDate);
+        response.forEach((alert) => {
+          const isNewAlert = !this.alerts.find(
+            (existingAlert) => existingAlert.alertDate === alert.alertDate
+          );
   
-        if (isNewAlert) {
-          this.alerts.unshift(latestAlert); // Add new alert to the top of the list
-          this.updateDom(); // Update the DOM
-        }
+          if (isNewAlert) {
+            this.alerts.push(alert); // Add the new alert to the list
+          }
+        });
+        this.trimAlerts(); // Keep only the latest 5 alerts
+        this.updateDom(); // Update the DOM
       }
     },
   
     processHistoryAlerts: function (response) {
-      // Sort history by date descending and take the last 5 alerts
-      this.historyAlerts = response
+      if (response && response.length > 0) {
+        response.forEach((alert) => {
+          const isNewAlert = !this.alerts.find(
+            (existingAlert) => existingAlert.alertDate === alert.alertDate
+          );
+  
+          if (isNewAlert) {
+            this.alerts.push(alert); // Add historical alert to the list
+          }
+        });
+        this.trimAlerts(); // Keep only the latest 5 alerts
+        this.updateDom(); // Update the DOM with the latest alerts
+      }
+    },
+  
+    trimAlerts: function () {
+      // Sort alerts by date descending and keep only the latest 5
+      this.alerts = this.alerts
         .sort((a, b) => new Date(b.alertDate) - new Date(a.alertDate))
         .slice(0, 5);
-  
-      this.updateDom(); // Update the DOM with the latest history alerts
     },
   
     scheduleUpdates: function () {
@@ -84,7 +100,7 @@ Module.register("MMM-RocketAlerts", {
       const wrapper = document.createElement("div");
       wrapper.className = "rocket-alerts";
   
-      if (this.alerts.length === 0 && this.historyAlerts.length === 0) {
+      if (this.alerts.length === 0) {
         wrapper.innerHTML = "No alerts.";
         return wrapper;
       }
@@ -93,75 +109,30 @@ Module.register("MMM-RocketAlerts", {
       title.innerText = "Rocket Alerts";
       wrapper.appendChild(title);
   
-      // New Alerts Section
-      const newAlertsSection = document.createElement("div");
-      newAlertsSection.className = "new-alerts";
+      // Alerts Section
+      const alertsSection = document.createElement("div");
+      alertsSection.className = "alerts-section";
   
-      const newAlertsTitle = document.createElement("h3");
-      newAlertsTitle.innerText = "New Alerts:";
-      newAlertsSection.appendChild(newAlertsTitle);
+      this.alerts.forEach((alert) => {
+        const alertDiv = document.createElement("div");
+        alertDiv.className = "alert";
   
-      if (this.alerts.length === 0) {
-        const noNewAlerts = document.createElement("div");
-        noNewAlerts.innerText = "No new alerts.";
-        newAlertsSection.appendChild(noNewAlerts);
-      } else {
-        this.alerts.forEach((alert) => {
-          const alertDiv = document.createElement("div");
-          alertDiv.className = "alert";
+        const date = document.createElement("div");
+        date.innerText = `Date: ${alert.alertDate}`;
+        alertDiv.appendChild(date);
   
-          const date = document.createElement("div");
-          date.innerText = `Date: ${alert.alertDate}`;
-          alertDiv.appendChild(date);
+        const title = document.createElement("div");
+        title.innerText = `Title: ${alert.title}`;
+        alertDiv.appendChild(title);
   
-          const title = document.createElement("div");
-          title.innerText = `Title: ${alert.title}`;
-          alertDiv.appendChild(title);
+        const data = document.createElement("div");
+        data.innerText = `Location: ${alert.data}`;
+        alertDiv.appendChild(data);
   
-          const data = document.createElement("div");
-          data.innerText = `Location: ${alert.data}`;
-          alertDiv.appendChild(data);
+        alertsSection.appendChild(alertDiv);
+      });
   
-          newAlertsSection.appendChild(alertDiv);
-        });
-      }
-  
-      wrapper.appendChild(newAlertsSection);
-  
-      // History Section
-      const historySection = document.createElement("div");
-      historySection.className = "history-alerts";
-  
-      const historyTitle = document.createElement("h3");
-      historyTitle.innerText = "Alert History (Last 5):";
-      historySection.appendChild(historyTitle);
-  
-      if (this.historyAlerts.length === 0) {
-        const noHistory = document.createElement("div");
-        noHistory.innerText = "No history alerts.";
-        historySection.appendChild(noHistory);
-      } else {
-        this.historyAlerts.forEach((alert) => {
-          const alertDiv = document.createElement("div");
-          alertDiv.className = "alert";
-  
-          const date = document.createElement("div");
-          date.innerText = `Date: ${alert.alertDate}`;
-          alertDiv.appendChild(date);
-  
-          const title = document.createElement("div");
-          title.innerText = `Title: ${alert.title}`;
-          alertDiv.appendChild(title);
-  
-          const data = document.createElement("div");
-          data.innerText = `Location: ${alert.data}`;
-          alertDiv.appendChild(data);
-  
-          historySection.appendChild(alertDiv);
-        });
-      }
-  
-      wrapper.appendChild(historySection);
+      wrapper.appendChild(alertsSection);
   
       return wrapper;
     },
