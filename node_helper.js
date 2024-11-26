@@ -22,7 +22,7 @@ module.exports = NodeHelper.create({
             const alertData = alertResponse.data;
 
             if (Object.keys(alertData).length > 0) {
-                logger.log("Current alert detected:", alertData);
+                logger.log(`Current alert detected: ${JSON.stringify(alertData)}`);
                 this.sendSocketNotification("ALERT_RECEIVED", alertData);
             }
 
@@ -31,11 +31,11 @@ module.exports = NodeHelper.create({
             const historyData = historyResponse.data;
 
             if (Array.isArray(historyData)) {
-                logger.log("Fetched alert history.");
+                logger.log(`Fetched alert history.: ${JSON.stringify(historyData)}`);
                 this.sendSocketNotification("HISTORY_RECEIVED", historyData);
             }
         } catch (error) {
-            logger.error("Error fetching alerts:", error);
+            logger.error(`Error fetching alerts: ${error}`);
         }
 
         // Repeat fetch
