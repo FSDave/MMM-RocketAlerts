@@ -8,6 +8,7 @@ Module.register("MMM-RocketAlerts", {
       this.alerts = []; // Initialize empty alerts array
       this.getAlerts();
       this.scheduleUpdate();
+      this.injectCustomStyles(); // Inject CSS for flashing effect
     },
   
     getAlerts: function () {
@@ -24,7 +25,61 @@ Module.register("MMM-RocketAlerts", {
       if (notification === "ALERTS_DATA") {
         this.alerts = payload; // Update alerts with new data
         this.updateDom();
+        this.checkForSiren(); // Check for sirens and trigger flashing
       }
+    },
+  
+    checkForSiren: function () {
+      const hasAlerts = this.alerts && this.alerts.length > 0;
+  
+      // Add or remove the flashing class based on alerts
+      if (hasAlerts) {
+        this.startFlashing();
+      } else {
+        this.stopFlashing();
+      }
+    },
+  
+    startFlashing: function () {
+      const body = document.body;
+      if (!body.classList.contains("flash-red")) {
+        body.classList.add("flash-red");
+      }
+    },
+  
+    stopFlashing: function () {
+      const body = document.body;
+      body.classList.remove("flash-red");
+    },
+  
+    injectCustomStyles: function () {
+      const style = document.createElement("style");
+      style.innerHTML = `
+        .flash-red {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: red;
+          z-index: 9999;
+          animation: flash 1s infinite;
+          pointer-events: none;
+        }
+  
+        @keyframes flash {
+          0% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0.5;
+          }
+        }
+      `;
+      document.head.appendChild(style);
     },
   
     getDom: function () {
@@ -57,4 +112,5 @@ Module.register("MMM-RocketAlerts", {
   
       return wrapper;
     },
-  });  
+  });
+  

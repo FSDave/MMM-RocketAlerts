@@ -24,7 +24,7 @@ This is a module for [MagicMirror²](https://magicmirror.builders/) that display
     ```bash
     npm install
     ```
-    
+
 ---
 ## Configuration
 Add the module to the modules array in your config.js file:
@@ -43,7 +43,7 @@ Add the module to the modules array in your config.js file:
 | Option | Description | Default Value|
 | --- | --- | --- |
 | `updateInterval` | How often the module fetches new alerts (in milliseconds). | `60000` (1 minute)|
-| `apiurl` | The URL of the API that provides alert dat | OREF API URL (see example)|
+| `apiurl` | The URL of the API that provides alert data | OREF API URL (see example)|
 ---
 ## Features
 - Fetches real-time rocket alerts.
