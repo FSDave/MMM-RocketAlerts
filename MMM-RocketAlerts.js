@@ -1,3 +1,4 @@
+const Log = require("logger");
 Module.register("MMM-RocketAlerts", {
     defaults: {
       updateInterval: 1000, // 1 second for new alerts
@@ -21,7 +22,7 @@ Module.register("MMM-RocketAlerts", {
         }
         return await response.json();
       } catch (error) {
-        console.error(`MMM-RocketAlerts: Error fetching data from ${url}`, error);
+        Log.error(`MMM-RocketAlerts: Error fetching data from ${url}`, error);
         return null;
       }
     },
@@ -65,7 +66,7 @@ Module.register("MMM-RocketAlerts", {
         this.trimAlerts(); // Keep only the latest 5 alerts
         this.updateDom(); // Update the DOM with the latest alerts
       } else {
-        console.log(`response from rocket history: ${JSON.stringify(response)}`)
+        Log.log(`response from rocket history: ${JSON.stringify(response)}`)
       }
     },
   

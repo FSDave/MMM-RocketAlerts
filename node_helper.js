@@ -1,9 +1,10 @@
 const NodeHelper = require("node_helper");
 const axios = require("axios");
+const Log = require("logger");
 
 module.exports = NodeHelper.create({
   start: function () {
-    console.log("MMM-RocketAlerts helper started...");
+    Log.log("MMM-RocketAlerts helper started...");
   },
 
   socketNotificationReceived: function (notification, payload) {
@@ -46,7 +47,7 @@ module.exports = NodeHelper.create({
         this.sendSocketNotification("ALERTS_DATA", alerts);
       }
     } catch (error) {
-      console.error("Error fetching alerts:", error);
+      Log.error("Error fetching alerts:", error);
     }
   },
 });
