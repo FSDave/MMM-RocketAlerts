@@ -5,7 +5,8 @@ const logger = require("logger");
 module.exports = NodeHelper.create({
   start: function () {
     this.config = null;
-    this.currentTimeout = null;
+    this.alertTimeout = null;
+    this.historyTimeout = null;
   },
 
   socketNotificationReceived: function (notification, payload) {
@@ -22,11 +23,18 @@ module.exports = NodeHelper.create({
       const alertData = alertResponse.data;
 
       if (alertData && typeof (alertData) == "object" && Object.keys(alertData).length > 0) {
-        logger.log(`Current alert detected: ${JSON.stringify(alertData)}`);
         this.sendSocketNotification("ALERT_RECEIVED", alertData);
       }
 
-      // Fetch alert history
+    } catch (error) {
+      logger.error(`Error fetching alerts: ${error}`);
+    }
+
+    this.alertTimeout = setTimeout(() => this.fetchAlerts(), this.config.alertUpdateInterval);
+  },
+  fetchHistory: async function () {
+    try {
+
       const historyResponse = await axios.get(this.config.historyUrl);
       const historyData = historyResponse.data;
 
@@ -38,10 +46,10 @@ module.exports = NodeHelper.create({
     }
 
     // Repeat fetch
-    this.currentTimeout = setTimeout(() => this.fetchAlerts(), this.config.updateInterval);
+    this.historyTimeout = setTimeout(() => this.fetchAlerts(), this.config.historyUpdateInterval);
   },
-
   stop: function () {
-    if (this.currentTimeout) clearTimeout(this.currentTimeout);
+    if (this.alertTimeout) clearTimeout(this.alertTimeout);
+    if (this.historyTimeout) clearTimeout(this.historyTimeout);
   },
 });
