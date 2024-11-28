@@ -80,8 +80,8 @@ Module.register("MMM-RocketAlerts", {
         body.classList.add("flash-red");
         setTimeout(() => {
             this.currentAlert = null;
-            this.updateDom();
             body.classList.remove("flash-red");
+            this.updateDom();
         }, 5000);
     },
 });
