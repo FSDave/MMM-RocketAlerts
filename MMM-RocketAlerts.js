@@ -31,7 +31,7 @@ Module.register("MMM-RocketAlerts", {
             alertDesc.className = "alert-desc";
             alertDesc.innerHTML = this.currentAlert.desc;
             wrapper.appendChild(alertDesc);
-            
+
         }
         else if (this.lastAlerts.length > 0) {
             const historyHeader = document.createElement("div");
@@ -43,14 +43,14 @@ Module.register("MMM-RocketAlerts", {
             historyList.className = "history-list";
             this.lastAlerts.forEach(alert => {
                 const historyItem = document.createElement("li");
-                
+
                 const alertDate = new Date(alert.alertDate);
                 const now = new Date();
                 const isToday = alertDate.toDateString() === now.toDateString();
-            
+
                 const options = isToday ? { hour: '2-digit', minute: '2-digit' } : { weekday: 'long', hour: '2-digit', minute: '2-digit' };
                 const formattedDate = alertDate.toLocaleTimeString('en-US', options);
-            
+
                 historyItem.innerHTML = `${alert.title} - ${alert.data}: ${formattedDate}`;
                 historyList.appendChild(historyItem);
             });
@@ -58,7 +58,7 @@ Module.register("MMM-RocketAlerts", {
         } else {
             const noHistory = document.createElement("div");
             noHistory.className = "no-history";
-            noHistory.innerHTML = "No recent alerts.";
+            noHistory.innerHTML = "No Recent Alerts.";
             wrapper.appendChild(noHistory);
         }
 
@@ -67,15 +67,21 @@ Module.register("MMM-RocketAlerts", {
 
     socketNotificationReceived: function (notification, payload) {
         if (notification === "ALERT_RECEIVED") {
-                this.currentAlert = payload;
-                this.flashScreenRed();
-                this.updateDom();
+            this.currentAlert = payload;
+            this.flashScreenRed();
+            this.updateDom();
         } else if (notification === "HISTORY_RECEIVED") {
-            const newAlerts = payload.slice(0, 5);
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-            // Check if there are new alerts
+            // Filter alerts from the past week
+            const recentAlerts = payload.filter(alert => {
+                const alertDate = new Date(alert.alertDate);
+                return alertDate >= oneWeekAgo;
+            });
+            const newAlerts = recentAlerts.slice(0, 5);
+
             const isNewAlerts = JSON.stringify(this.lastAlerts) !== JSON.stringify(newAlerts);
-
             if (isNewAlerts) {
                 this.lastAlerts = newAlerts;
                 this.updateDom();
