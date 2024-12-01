@@ -43,7 +43,15 @@ Module.register("MMM-RocketAlerts", {
             historyList.className = "history-list";
             this.lastAlerts.forEach(alert => {
                 const historyItem = document.createElement("li");
-                historyItem.innerHTML = `${alert.alertDate}: ${alert.title} - ${alert.data}`;
+                
+                const alertDate = new Date(alert.alertDate);
+                const now = new Date();
+                const isToday = alertDate.toDateString() === now.toDateString();
+            
+                const options = isToday ? { hour: '2-digit', minute: '2-digit' } : { weekday: 'long', hour: '2-digit', minute: '2-digit' };
+                const formattedDate = alertDate.toLocaleTimeString('en-US', options);
+            
+                historyItem.innerHTML = `${alert.title} - ${alert.data}: ${formattedDate}`;
                 historyList.appendChild(historyItem);
             });
             wrapper.appendChild(historyList);
