@@ -48,10 +48,13 @@ Module.register("MMM-RocketAlerts", {
                 const now = new Date();
                 const isToday = alertDate.toDateString() === now.toDateString();
 
-                const options = isToday ? { hour: '2-digit', minute: '2-digit' } : { weekday: 'long', hour: '2-digit', minute: '2-digit' };
-                const formattedDate = alertDate.toLocaleTimeString('en-US', options);
+                const options = isToday
+                ? { hour: '2-digit', minute: '2-digit', hour12: true }
+                : { weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: true };
+        
+            const formattedDate = alertDate.toLocaleTimeString('en-US', options);
 
-                historyItem.innerHTML = `${alert.title} - ${alert.data}: ${formattedDate}`;
+                historyItem.innerHTML = `${alert.title} - ${alert.data} : ${formattedDate}`;
                 historyList.appendChild(historyItem);
             });
             wrapper.appendChild(historyList);
