@@ -54,7 +54,7 @@ Module.register("MMM-RocketAlerts", {
         
             const formattedDate = alertDate.toLocaleTimeString('en-US', options);
 
-                historyItem.innerHTML = `${alert.title} - ${alert.data} : ${formattedDate}`;
+                historyItem.innerHTML = `${formattedDate} : ${alert.title} - ${alert.data}`;
                 historyList.appendChild(historyItem);
             });
             wrapper.appendChild(historyList);
