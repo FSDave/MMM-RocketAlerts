@@ -3,7 +3,7 @@ Module.register("MMM-RocketAlerts", {
         alertUrl: "https://www.oref.org.il/WarningMessages/alert/alerts.json",
         historyUrl: "https://www.oref.org.il/warningMessages/alert/History/AlertsHistory.json",
         alertUpdateInterval: 1000, // 1 second
-        historyUpdateInterval: 5 * 1000, // 5 seconds
+        historyUpdateInterval: 10 * 1000, // 10 seconds
     },
 
     start: function () {
