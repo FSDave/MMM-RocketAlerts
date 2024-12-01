@@ -22,7 +22,6 @@ module.exports = NodeHelper.create({
       // Fetch current alert
       const alertResponse = await axios.get(this.config.alertUrl);
       const alertData = alertResponse.data;
-      logger.info(`received alert data: ${JSON.stringify(alertData)}`)
 
       if (alertData && typeof (alertData) == "object" && Object.keys(alertData).length > 0) {
         this.sendSocketNotification("ALERT_RECEIVED", alertData);
@@ -39,7 +38,6 @@ module.exports = NodeHelper.create({
 
       const historyResponse = await axios.get(this.config.historyUrl);
       const historyData = historyResponse.data;
-      logger.info(`received history data: ${JSON.stringify(historyData)}`)
       if (Array.isArray(historyData)) {
         this.sendSocketNotification("HISTORY_RECEIVED", historyData);
       }
